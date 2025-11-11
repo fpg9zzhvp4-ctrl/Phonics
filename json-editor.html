@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phonics JSON Editor</title>
+<style>
+body {
+    font-family: "Comic Sans MS", Arial, sans-serif;
+    background: linear-gradient(to bottom, #a0eaff, #ffe0f0);
+    margin: 0;
+    padding: 2rem;
+    color: #222;
+}
+h1 { text-align: center; color: #ff1493; margin-bottom: 1rem; }
+label { font-weight: bold; margin-right: 8px; }
+select, input[type="text"] { padding: 6px; margin-bottom: 12px; font-size: 1rem; border-radius: 6px; border: 2px solid #ffb6c1; }
+button { padding: 6px 12px; margin-left: 6px; border-radius: 6px; border: none; cursor: pointer; }
+button:hover { opacity: 0.9; }
+.word-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    background: #fff7fb;
+    border: 2px solid #ffb6c1;
+    border-radius: 10px;
+    padding: 6px 10px;
+    margin-bottom: 6px;
+}
+.word-item input[type="text"] {
+    flex: 1;
+    text-transform: lowercase;
+}
+</style>
+</head>
+<body>
+
+<h1>Phonics JSON Editor</h1>
+
+<div>
+    <label for="levelSelect">Level:</label>
+    <select id="levelSelect"></select>
+
+    <label for="weekSelect">Week:</label>
+    <select id="weekSelect"></select>
+</div>
+
+<div id="wordsContainer"></div>
+
+<button id="addWordBtn">Add Word</button>
+<button id="saveJsonBtn">Download JSON</button>
+
+<script>
+let wordsData = [];
+const levelSelect = document.getElementById("levelSelect");
+const weekSelect = document.getElementById("weekSelect");
+const wordsContainer = document.getElementById("wordsContainer");
+const addWordBtn = document.getElementById("addWordBtn");
+const saveJsonBtn = document.getElementById("saveJsonBtn");
+
+// Load JSON
+async function loadJSON() {
+    try {
+        const res = await fetch("words.json");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+            wordsData = data;
+        }
+    } catch(e) {
+        console.warn("Could not load words.json, starting with empty array.", e);
+        wordsData = [];
+    }
+    populateLevelSelect();
+}
+loadJSON();
+
+// Populate level dropdown
+function populateLevelSelect() {
+    const levelsSet = new Set(wordsData.map(w => w.level));
+    for (let i = 1; i <= 10; i++) levelsSet.add(i);
+    levelSelect.innerHTML = '<option value="">-- Select Level --</option>';
+    Array.from(levelsSet).sort((a,b)=>a-b).forEach(lvl => {
+        const opt = document.createElement("option");
+        opt.value = lvl;
+        opt.textContent = `Level ${lvl}`;
+        levelSelect.appendChild(opt);
+    });
+}
+
+// Populate week dropdown
+function populateWeekSelect() {
+    const level = Number(levelSelect.value);
+    const weeksSet = new Set(wordsData.filter(w => w.level === level).map(w => w.week));
+    for (let i = 1; i <=6; i++) weeksSet.add(i);
+    weekSelect.innerHTML = '<option value="">-- Select Week --</option>';
+    Array.from(weeksSet).sort((a,b)=>a-b).forEach(week => {
+        const opt = document.createElement("option");
+        opt.value = week;
+        opt.textContent = `Week ${week}`;
+        weekSelect.appendChild(opt);
+    });
+}
+
+// Render words for selected level/week
+function renderWords() {
+    wordsContainer.innerHTML = "";
+    const level = Number(levelSelect.value);
+    const week = Number(weekSelect.value);
+    if (!level || !week) return;
+
+    const filtered = wordsData.filter(w => w.level === level && w.week === week);
+    filtered.forEach((w, idx) => {
+        const div = createWordItem(w.word, w.type === "alien", level, week, idx);
+        wordsContainer.appendChild(div);
+    });
+}
+
+// Create a word line
+function createWordItem(word, isAlien, level, week, idx) {
+    const div = document.createElement("div");
+    div.className = "word-item";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = word;
+    input.oninput = () => wordsData = wordsData.map(wd => (wd.level===level && wd.week===week && wd.word===word) ? {...wd, word: input.value.toLowerCase()} : wd);
+    div.appendChild(input);
+
+    const alienCheckbox = document.createElement("input");
+    alienCheckbox.type = "checkbox";
+    alienCheckbox.checked = isAlien;
+    alienCheckbox.onchange = () => wordsData = wordsData.map(wd => (wd.level===level && wd.week===week && wd.word===input.value) ? {...wd, type: alienCheckbox.checked ? "alien" : "regular"} : wd);
+    div.appendChild(alienCheckbox);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.textContent = "Remove";
+    removeBtn.onclick = () => {
+        wordsData = wordsData.filter(wd => !(wd.level===level && wd.week===week && wd.word===input.value));
+        renderWords();
+    };
+    div.appendChild(removeBtn);
+
+    return div;
+}
+
+// Event listeners
+levelSelect.addEventListener("change", () => {
+    populateWeekSelect();
+    renderWords();
+});
+
+weekSelect.addEventListener("change", renderWords);
+
+addWordBtn.addEventListener("click", () => {
+    const level = Number(levelSelect.value);
+    const week = Number(weekSelect.value);
+    if (!level || !week) {
+        alert("Select a level and week first!");
+        return;
+    }
+    const word = prompt("Enter a new word:").toLowerCase();
+    if (!word) return;
+    wordsData.push({level, week, word, type:"regular"});
+    renderWords();
+});
+
+// Download JSON
+saveJsonBtn.addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(wordsData, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "words.json";
+    a.click();
+    URL.revokeObjectURL(url);
+});
+</script>
+
+</body>
+</html>
