@@ -1,0 +1,26 @@
+[
+  {
+    "word": "Cat",
+    "level": 4,
+    "week": 1,
+    "type": "real"
+  },
+  {
+    "word": "Fish",
+    "level": 4,
+    "week": 1,
+    "type": "alien"
+  },
+	{
+    "word": "Bird",
+    "level": 4,
+    "week": 1,
+    "type": "real"
+  },
+	{
+    "word": "Blap",
+    "level": 4,
+    "week": 1,
+    "type": "alien"
+  }
+]
