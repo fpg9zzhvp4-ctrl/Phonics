@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Phonics Screening Practice</title>
+	<link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+	<div class="container">
+
+		<!-- MENU SCREEN -->
+		<div id="menu" class="screen active">
+			<h1>Phonics Screening Practice</h1>
+			<label for="levelSelect">Select Level:</label>
+			<select id="levelSelect"></select>
+			<div id="weeks"></div>
+			<button id="practiceTestBtn">Practice Test</button>
+		<div class="menu-buttons">
+			<button id="resetAllBtn" class="btn-danger">Reset All Progress</button>
+		</div>
+	</div>
+
+		<!-- GAME SCREEN -->
+		<div id="game" class="screen">
+			<div class="flashcard">
+				<span id="word-display"></span>
+				<span id="alien-icon"></span>
+			</div>
+			<div class="answer-buttons">
+				<button id="correct">✔ Correct</button>
+				<button id="wrong">✖ Wrong</button>
+			</div>
+		</div>
+
+		<!-- FINISH SCREEN -->
+		<div id="finish" class="screen">
+			<h2>Session Results</h2>
+			<div id="summary" class="summary"></div>
+			<div id="word-results" class="word-results"></div>
+			<div class="results-buttons">
+				<button id="play-again-btn" class="btn btn-success">Play Again</button>
+				<button id="start-btn" class="btn btn-warning">Back to Menu</button>
+				<button id="reset-week-btn" class="btn btn-danger">Reset Weekly Progress</button>
+			</div>
+		</div>
+
+	</div>
+
+	<script src="app.js"></script>
+</body>
+
+</html>
